@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: polargres
+  labels:
+    db: polargres
+spec:
+  selector:
+    matchLabels:
+      db: polargres
+  template:
+    metadata:
+      labels:
+        db: polargres
+    spec:
+      containers:
+        - name: polargres
+          image: postgres:15.4
+          env:
+            - name: POSTGRES_USER
+              value: user
+            - name: POSTGRES_PASSWORD
+              value: Password 
+            - name: POSTGRES_DB
+              value: polardb_catalog_db
+          resources:
+            requests:
+              cpu: 100m
+              memory: 60Mi
+            limits:
+              cpu: 200m
+              memory: 120Mi
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: polargres
+  labels:
+    db: polargres
+spec:
+  type: ClusterIP
+  selector:
+    db: polargres
+  ports:
+  - protocol: TCP
+    port: 5432
+    targetPort: 5432
