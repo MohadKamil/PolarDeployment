@@ -22,12 +22,6 @@ services:
             interval: 10s
             timeout: 5s
             retries: 5
-        # healthcheck:
-        #     test: ["CMD", "curl", "-f", "http://polargres:5432"]
-        #     interval: 1m30s
-        #     timeout: 30s
-        #     retries: 5
-        #     start_period: 30s
         image: "postgres:15.4"
         container_name: polargres
         ports:
