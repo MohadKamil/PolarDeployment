@@ -29,5 +29,6 @@ services:
         environment:
             - POSTGRES_USER=user
             - POSTGRES_PASSWORD=Password
-            - POSTGRES_DB=polar_catalog_db
+        volumes:
+            - ./postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
         
