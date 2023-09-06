@@ -8,19 +8,27 @@ services:
         image: "catalog:pack1.0.0"
         container_name: catalog
         ports:
-            - 9001:9001
-            - 8001:8001
+            - "9001:9001"
+            - "8001:8001"
         environment:
             - BPL_JVM_THREAD_COUNT=50      
             - BPL_DEBUG_ENABLED=true
             - BPL_DEBUG_PORT=8001
             - SPRING_DATASOURCE_URL=jdbc:postgresql://polargres:5432/polar_catalog_db?user=user&password=Password
             - SPRING_PROFILES_ACTIVE=TestData
+    polar-rabbitmq:
+        image: rabbitmq:3.12-management
+        container_name: polar-rabbitmq
+        ports:
+            - "5672:5672"
+            - "15672:15672"
+        volumes:
+            - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf
     polar-redis:
         image: "redis:7-alpine"
         container_name: "polar-redis"
         ports:
-            - 6379:6379
+            - "6379:6379"
     polargres:
         healthcheck:
             test: ["CMD-SHELL", "pg_isready"]
@@ -30,7 +38,7 @@ services:
         image: "postgres:15.4"
         container_name: polargres
         ports:
-            - 5432:5432
+            - "5432:5432"
         environment:
             - POSTGRES_USER=user
             - POSTGRES_PASSWORD=Password
