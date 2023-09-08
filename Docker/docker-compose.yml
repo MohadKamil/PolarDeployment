@@ -1,8 +1,19 @@
 version: "3.8"
 
 services:
+    polar-ui:
+        image: "ghcr.io/polarbookshop/polar-ui:v1"
+        container_name: "polar-ui"
+        ports:
+        - 9004:9004
+        environment:
+        - PORT=9004
     catalogAPI:
         depends_on:
+            polar-keycloak:
+                condition: service_started
+            fluent-bit:
+                condition: service_started
             polargres:
                 condition: service_healthy
         image: "catalog:pack1.0.0"
@@ -10,6 +21,10 @@ services:
         ports:
             - "9001:9001"
             - "8001:8001"
+        logging:
+          driver: fluentd
+          options:
+             fluentd-address: 127.0.0.1:24224
         environment:
             - BPL_JVM_THREAD_COUNT=50      
             - BPL_DEBUG_ENABLED=true
@@ -43,5 +58,53 @@ services:
             - POSTGRES_USER=user
             - POSTGRES_PASSWORD=Password
         volumes:
-            - ./postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql
-        
+            - ./postgresql/init.sql:/docker-entrypoint-initdb.d/init.sql  
+    polar-keycloak:                           
+        image: quay.io/keycloak/keycloak:19.0
+        container_name: "polar-keycloak"
+        command: start-dev --import-realm                   
+        volumes:                                   
+        - ./keycloak:/opt/keycloak/data/import
+        environment:                            
+        - KEYCLOAK_ADMIN=user
+        - KEYCLOAK_ADMIN_PASSWORD=Password
+        ports:
+        - 8081:8080
+    grafana:
+        image: grafana/grafana:9.1.2
+        container_name: grafana
+        depends_on:
+        - loki
+        - prometheus
+        ports:
+        - "3000:3000"
+        environment:                                               
+        - GF_SECURITY_ADMIN_USER=user
+        - GF_SECURITY_ADMIN_PASSWORD=password
+        volumes:                                                   
+        - ./observability/grafana/datasource.yml:/etc/grafana/provisioning/datasources/datasource.yml
+        - ./observability/grafana/dashboards:/etc/grafana/provisioning/dashboards
+        - ./observability/grafana/grafana.ini:/etc/grafana/grafana.ini  
+    loki:
+        image: grafana/loki:2.6.1
+        container_name: loki
+        depends_on:
+        - fluent-bit
+        ports:
+        - "3100:3100"
+    fluent-bit:
+        image: grafana/fluent-bit-plugin-loki:2.6.1-amd64
+        container_name: fluent-bit
+        ports:
+        - "24224:24224"
+        environment:
+        - LOKI_URL=http://loki:3100/loki/api/v1/push           
+        volumes:                                                 
+        - ./observability/fluent-bit/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
+    prometheus: 
+        image: prom/prometheus:v2.38.0 
+        container_name: prometheus 
+        ports: 
+        - "9090:9090" 
+        volumes:                         
+        - ./observability/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
