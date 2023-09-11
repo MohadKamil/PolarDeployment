@@ -31,6 +31,13 @@ spec:
               value: jdbc:postgresql://polargres:5432/polardb_catalog_db?user=user&password=Password 
             - name: SPRING_PROFILES_ACTIVE                     
               value: TestData
+          volumeMounts:
+            - name: catalog-config-volume
+              mountPath: /workspace/config
+      volumes:
+        - name: catalog-config-volume
+          configMap:
+            name: catalog-config
 
 ---
 
