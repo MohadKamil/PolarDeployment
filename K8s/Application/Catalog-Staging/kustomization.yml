@@ -7,7 +7,15 @@ patches:
 - path: patch-environment.yml
 
 configMapGenerator:
-  - behavior: merge
-    files:
-    - application-staging.properties
-    name: catalog-config
+- behavior: merge
+  files:
+  - application-staging.properties
+  name: catalog-config
+images:
+- name: catalog
+  newName: catalog
+  newTag: pack1.1.0
+
+replicas:
+  - name: catalog
+    count: 4
